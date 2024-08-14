@@ -34,15 +34,35 @@ public class HousesRepository
         return house;
     }
 
-    public void DestroyHouse(int houseId)
+    public House CreateHouse(House houseData)
     {
-        string sql = "DELETE FROM house WHERE id @houseId LIMIT 1;";
+        string sql = @"
+INSERT INTO
+house(sqft, bedrooms, bathrooms, imgUrl, price, description, isFixerUp, creatorId)
+VALUES(@Sqft, @Bedrooms, @Bathrooms, @ImgUrl, @Drice, @Description, @IsFixerUp, @CreatorId);
 
-        int rowsAffected = _db.Execute(sql, new { houseId });
+SELECT houses.*, accounts.*
+ FROM houses
+ JOIN accounts ON accounts.id = houses.creatorId
+  WHERE houses.id = LAST_INSERT_ID();";
 
-        if (rowsAffected == 0) throw new Exception("DELETE FAILED");
-        if (rowsAffected > 1) throw new Exception("DELETE WAS OVERED POWERED");
+        House house = _db.Query<House, Profile, House>(sql, (house, account) =>
+        {
+            house.Creator = account;
+            return house;
+        }, houseData).FirstOrDefault();
+        return house;
     }
+
+    // public void DestroyHouse(int houseId)
+    // {
+    //     string sql = "DELETE FROM house WHERE id @houseId LIMIT 1;";
+
+    //     int rowsAffected = _db.Execute(sql, new { houseId });
+
+    //     if (rowsAffected == 0) throw new Exception("DELETE FAILED");
+    //     if (rowsAffected > 1) throw new Exception("DELETE WAS OVERED POWERED");
+    // }
 
 
 }

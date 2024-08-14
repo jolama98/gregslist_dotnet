@@ -4,10 +4,12 @@ namespace gregslist_dotnet.Controllers;
 public class HousesController : ControllerBase
 {
     private readonly HousesService _housesService;
+    private readonly Auth0Provider _auth0Provider;
 
-    public HousesController(HousesService housesService)
+    public HousesController(HousesService housesService, Auth0Provider auth0Provider)
     {
         _housesService = housesService;
+        _auth0Provider = auth0Provider;
     }
 
     [HttpGet]
@@ -40,16 +42,16 @@ public class HousesController : ControllerBase
             return BadRequest(exception.Message);
         }
     }
-
-    [HttpDelete("{houseId}")]
+    [HttpPost]
     [Authorize]
-    public async Task<ActionResult<string>> DestroyHouse(int houseId)
+    public async Task<ActionResult<House>> CreateHouse([FromBody] House houseData)
     {
         try
         {
             Account userInfo = await _auth0Provider.GetUserInfoAsync<Account>(HttpContext);
-            string message = _housesService.DestroyHouse(houseId userInfo.Id);
-            return Ok(message);
+            houseData.CreatorId = userInfo.Id;
+            House house = _housesService.CreateHouse(houseData);
+            return Ok(house);
         }
         catch (Exception exception)
         {

@@ -24,7 +24,12 @@ public class HousesService
         {
             throw new Exception($"No house with id {houseId}");
         }
+        return house;
+    }
 
+    public House CreateHouse(House houseData)
+    {
+        House house = _housesRepository.CreateHouse(houseData);
         return house;
     }
 }
